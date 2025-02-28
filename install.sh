@@ -177,8 +177,7 @@ create_partitions() {
     parted -s "$TARGET_DISK" mkpart primary $FS_TYPE "${CURRENT_POS}GiB" 100%
 
     # force formatting of partitions
-    BOOT_DISK="${TARGET_DISK_NAME}1"
-    mkfs.fat -F32 -f $BOOT_DISK
+    mkfs.fat -F32 -f "${TARGET_DISK_NAME}1"
     mkfs.ext4 -F "${TARGET_DISK_NAME}3"
     mkswap -f "${TARGET_DISK_NAME}2"
     mkfs.ext4 -F "${TARGET_DISK_NAME}4"
@@ -196,6 +195,8 @@ main() {
     FS_TYPE="ext4" # "btrfs"
     LANGUAGE_NATIVE="false"
     SYSTEMNAME="archlinux"
+    USERNAME="cool"
+    PASSWORD="looc"
     BOOT_SIZE=1
     parse_args "$@"
     check_boot_mode
@@ -206,7 +207,7 @@ main() {
     distribute
     create_partitions
 
-    wget https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -O- | tee /mnt/root/archlinux.sh | (chmod +x /mnt/root/archlinux.sh && arch-chroot /mnt /root/archlinux.sh $BOOT_DISK $USERNAME $PASSWORD KDE)
+    wget https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -O- | tee /mnt/root/archlinux.sh | (chmod +x /mnt/root/archlinux.sh && arch-chroot /mnt /root/archlinux.sh $TARGET_DISK $USERNAME $PASSWORD KDE)
 
     umount -R /mnt
 }
