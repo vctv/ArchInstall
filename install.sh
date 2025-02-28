@@ -153,7 +153,7 @@ target_disk(){
     else
         TARGET_DISK_NAME="$TARGET_DISK"
     fi
-    wipefs -a $TARGET_DISK_NAME
+    wipefs -a $TARGET_DISK
     TARGET_DISK_SIZE=$(lsblk -b -d -n -o SIZE $TARGET_DISK_NAME | awk '{printf "%.0f\n", $1/1024/1024/1024}')
 }
 
