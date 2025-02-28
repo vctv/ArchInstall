@@ -104,11 +104,11 @@ target_disk(){
 #            TARGET_DISK="/dev/${disk}"
 #        fi
 #    done < <(lsblk -d -n -o NAME | grep -E "^sd|^nvme|^vd")
-#    if [[ "$TARGET_DISK" =~ "nvme" ]]; then
-#        TARGET_DISK_NAME="${TARGET_DISK}p"
-#    else
-#        TARGET_DISK_NAME="$TARGET_DISK"
-#    fi
+    if [[ "$TARGET_DISK" =~ "nvme" ]]; then
+        TARGET_DISK_NAME="${TARGET_DISK}p"
+    else
+        TARGET_DISK_NAME="$TARGET_DISK"
+    fi
     TARGET_DISK="/dev/nvme0n1"
     wipefs -a $TARGET_DISK
     TARGET_DISK_SIZE=$(lsblk -b -d -n -o SIZE $TARGET_DISK | awk '{printf "%.0f\n", $1/1024/1024/1024}')
