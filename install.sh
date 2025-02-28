@@ -215,9 +215,12 @@ main() {
     distribute
     create_partitions
 
+
+
 #    wget https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -O- | tee /mnt/root/archlinux.sh | (chmod +x /mnt/root/archlinux.sh && arch-chroot /mnt /root/archlinux.sh $TARGET_DISK $USERNAME $PASSWORD KDE)
 #
 #    umount -R /mnt
+    exit 1
 }
 
 main "$@"
