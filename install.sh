@@ -167,13 +167,13 @@ main() {
     distribute
     create_partitions
 
-    pacman -S archlinux-keyring
-
-    pacstrap /mnt base base-devel linux linux-firmware vim git dhcpcd e2fsprogs iwd sudo bash bash-completions
-
-    curl -Ls https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -o /mnt/root/archlinux.sh
-    chmod +x /mnt/root/archlinux.sh
-    arch-chroot /mnt /root/archlinux.sh
+#    pacman -S archlinux-keyring
+#
+    pacstrap /mnt base base-devel linux linux-firmware vim dhcpcd iwd sudo
+#
+#    curl -Ls https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -o /mnt/root/archlinux.sh
+#    chmod +x /mnt/root/archlinux.sh
+#    arch-chroot /mnt /root/archlinux.sh
 }
 
 main "$@"
