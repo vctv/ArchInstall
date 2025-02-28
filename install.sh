@@ -174,9 +174,6 @@ main() {
     curl -Ls https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -o /mnt/root/archlinux.sh
     chmod +x /mnt/root/archlinux.sh
     arch-chroot /mnt /root/archlinux.sh
-    umount -R /mnt
-    reboot
-
 }
 
 main "$@"
