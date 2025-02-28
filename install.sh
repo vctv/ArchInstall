@@ -167,10 +167,16 @@ main() {
     distribute
     create_partitions
 
-#    pacman -S archlinux-keyring
-#
+    pacman -S archlinux-keyring
+
+    if [ "$BOOT_MODE" = "UEFI" ]; then
+        genfstab -U /mnt >> /mnt/etc/fstab
+    else
+        genfstab -p /mnt >> /mnt/etc/fstab
+    fi
+
     pacstrap /mnt base base-devel linux linux-firmware vim dhcpcd iwd sudo
-#
+
 #    curl -Ls https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -o /mnt/root/archlinux.sh
 #    chmod +x /mnt/root/archlinux.sh
 #    arch-chroot /mnt /root/archlinux.sh
