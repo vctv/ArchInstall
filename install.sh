@@ -4,18 +4,6 @@
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
-            -s|--ssid)
-                SSID="$2"
-                shift 2
-                ;;
-            -k|--key)
-                PSK="$2"
-                shift 2
-                ;;
-            -x|--proxy)
-                PROXY="$2"
-                shift 2
-                ;;
             -u|--username)
                 USERNAME="$2"
                 shift 2
@@ -41,9 +29,6 @@ show_help() {
     echo "Arch Linux install script"
     echo "usage: $0 [options]"
     echo "options:"
-    echo "  -s, --ssid          wifi name"
-    echo "  -p, --key           wifi password"
-    echo "  -x, --proxy         the address of the proxy server"
     echo "  -u, --username      username"
     echo "  -p, --password      user and root passwords"
     echo "  -h, --help          displays help information"
@@ -55,38 +40,6 @@ check_boot_mode() {
         BOOT_MODE="UEFI"
     else
         BOOT_MODE="BIOS"
-    fi
-}
-
-# connect to wifi
-connect_wifi() {
-    if [ -n "$SSID" ]; then
-        if [ -n "$PSK" ]; then
-            iwctl --passphrase "$PSK" station wlan0 connect "$SSID" >/dev/null 2>&1
-        else
-            iwctl station wlan0 connect "$SSID" >/dev/null 2>&1
-        fi
-
-        if ! ping -c 1 archlinux.org >/dev/null 2>&1; then
-            echo "The WiFi connection fails or the network cannot be accessed !"
-            exit 1
-        fi
-    fi
-}
-
-# 设置代理
-set_proxy() {
-    if [ -n "$PROXY" ]; then
-        export http_proxy="$PROXY"
-        export https_proxy="$PROXY"
-
-        local URL="https://www.google.com"
-        local HTTP_CODE=$(curl -s -f -o /dev/null -w "%{http_code}" "$URL")
-        if [ "$HTTP_CODE" == "200" ]; then
-            echo "Cannot access Google !"
-        else
-            echo "Unable to access Google, Http status code: $HTTP_CODE"
-        fi
     fi
 }
 
@@ -186,10 +139,10 @@ create_partitions() {
     parted -s "$TARGET_DISK" mkpart primary $FS_TYPE "${CURRENT_POS}GiB" 100%
 
     # force formatting of partitions
-    mkfs.fat -F32 -f "${TARGET_DISK_NAME}1"
-    mkfs.ext4 -F "${TARGET_DISK_NAME}3"
+    mkfs.fat -F32 "${TARGET_DISK_NAME}1"
+    mkfs.ext4 "${TARGET_DISK_NAME}3"
     mkswap -f "${TARGET_DISK_NAME}2"
-    mkfs.ext4 -F "${TARGET_DISK_NAME}4"
+    mkfs.ext4 "${TARGET_DISK_NAME}4"
 
     # mount the partition
     mount "${TARGET_DISK_NAME}3" /mnt
@@ -211,8 +164,6 @@ main() {
     BOOT_SIZE=1
     parse_args "$@"
     check_boot_mode
-    connect_wifi
-    set_proxy
     update_mirrors
     target_disk
     distribute
