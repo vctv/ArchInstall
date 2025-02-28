@@ -131,12 +131,11 @@ distribute() {
         fi
 
         if [ $HOME_SIZE -gt 0 ]; then
-            echo "/：$ROOT_SIZE GiB"
-            echo "/home：$HOME_SIZE GiB"
-            echo "/boot：$BOOT_SIZE GiB"
-            echo "swap：$SWAP_SIZE GiB"
+            echo "/         $ROOT_SIZE GiB"
+            echo "/home     $HOME_SIZE GiB"
+            echo "/boot     $BOOT_SIZE GiB"
+            echo "swap      $SWAP_SIZE GiB"
         fi
-        exit 1
     done
 }
 
