@@ -143,16 +143,16 @@ distribute() {
 # select the hard drive
 target_disk(){
     TARGET_DISK=$(lsblk -dno name,size,type | grep disk | sort -k2 -hr | head -n1 | awk '{print "/dev/"$1}')
-    while read -r disk; do
-        if fdisk -l "/dev/${disk}" | grep -i "EFI" >/dev/null 2>&1; then
-            TARGET_DISK="/dev/${disk}"
-        fi
-    done < <(lsblk -d -n -o NAME | grep -E "^sd|^nvme|^vd")
-    if [[ "$TARGET_DISK" =~ "nvme" ]]; then
-        TARGET_DISK_NAME="${TARGET_DISK}p"
-    else
-        TARGET_DISK_NAME="$TARGET_DISK"
-    fi
+#    while read -r disk; do
+#        if fdisk -l "/dev/${disk}" | grep -i "EFI" >/dev/null 2>&1; then
+#            TARGET_DISK="/dev/${disk}"
+#        fi
+#    done < <(lsblk -d -n -o NAME | grep -E "^sd|^nvme|^vd")
+#    if [[ "$TARGET_DISK" =~ "nvme" ]]; then
+#        TARGET_DISK_NAME="${TARGET_DISK}p"
+#    else
+#        TARGET_DISK_NAME="$TARGET_DISK"
+#    fi
     wipefs -a $TARGET_DISK
     TARGET_DISK_SIZE=$(lsblk -b -d -n -o SIZE $TARGET_DISK | awk '{printf "%.0f\n", $1/1024/1024/1024}')
 }
