@@ -139,6 +139,7 @@ create_partitions() {
     parted -s "$TARGET_DISK" mkpart primary $FS_TYPE "${CURRENT_POS}GiB" 100%
 
     # force formatting of partitions
+    echo "TARGET_DISK_NAME - $TARGET_DISK_NAME"
     mkfs.fat -F32 "${TARGET_DISK_NAME}1"
     mkfs.ext4 "${TARGET_DISK_NAME}3"
     mkswap -f "${TARGET_DISK_NAME}2"
@@ -149,8 +150,8 @@ create_partitions() {
     mkdir -p /mnt/boot
     mount "${TARGET_DISK_NAME}1" /mnt/boot
     mkdir -p /mnt/home
-    mount "${disk}4" /mnt/home
-    swapon "${disk}2"
+    mount "${TARGET_DISK_NAME}4" /mnt/home
+    swapon "${TARGET_DISK_NAME}2"
 
     lsblk
 }
