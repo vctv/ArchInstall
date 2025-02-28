@@ -4,12 +4,8 @@
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
-            -u|--username)
-                USERNAME="$2"
-                shift 2
-                ;;
-            -p|--password)
-                PASSWORD="$2"
+            -d|--disk)
+                TARGET_DISK="$2"
                 shift 2
                 ;;
             -h|--help)
@@ -29,8 +25,7 @@ show_help() {
     echo "Arch Linux install script"
     echo "usage: $0 [options]"
     echo "options:"
-    echo "  -u, --username      username"
-    echo "  -p, --password      user and root passwords"
+    echo "  -d, --disk      TARGET_DISK"
     echo "  -h, --help          displays help information"
 }
 
@@ -97,8 +92,14 @@ distribute() {
 
 # select the hard drive
 target_disk(){
-    TARGET_DISK=$(lsblk -dno name,size,type | grep disk | sort -k2 -hr | head -n1 | awk '{print "/dev/"$1}')
-    echo "TARGET_DISK - $TARGET_DISK"
+#    TARGET_DISK=$(lsblk -dno name,size,type | grep disk | sort -k2 -hr | head -n1 | awk '{print "/dev/"$1}')
+    if [ -n "$TARGET_DISK" ]; then
+      echo "TARGET_DISK - $TARGET_DISK"
+    else
+      echo "NO TARGET_DISK"
+      exit 1
+    fi
+
 #    while read -r disk; do
 #        if fdisk -l "/dev/${disk}" | grep -i "EFI" >/dev/null 2>&1; then
 #            TARGET_DISK="/dev/${disk}"
@@ -109,7 +110,7 @@ target_disk(){
     else
         TARGET_DISK_NAME="$TARGET_DISK"
     fi
-    TARGET_DISK="/dev/nvme0n1"
+#    TARGET_DISK="/dev/nvme0n1"
     wipefs -a $TARGET_DISK
     TARGET_DISK_SIZE=$(lsblk -b -d -n -o SIZE $TARGET_DISK | awk '{printf "%.0f\n", $1/1024/1024/1024}')
     echo "TARGET_DISK_SIZE - $TARGET_DISK_SIZE"
@@ -158,10 +159,6 @@ create_partitions() {
 
 main() {
     FS_TYPE="ext4" # "btrfs"
-    LANGUAGE_NATIVE="false"
-    SYSTEMNAME="archlinux"
-    USERNAME="cool"
-    PASSWORD="looc"
     BOOT_SIZE=1
     parse_args "$@"
     check_boot_mode
@@ -170,12 +167,16 @@ main() {
     distribute
     create_partitions
 
+    pacman -S archlinux-keyring
 
+    pacstrap /mnt base base-devel linux linux-firmware vim git dhcpcd e2fsprogs iwd sudo bash bash-completions
 
-#    wget https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -O- | tee /mnt/root/archlinux.sh | (chmod +x /mnt/root/archlinux.sh && arch-chroot /mnt /root/archlinux.sh $TARGET_DISK $USERNAME $PASSWORD KDE)
-#
-#    umount -R /mnt
-    exit 1
+    curl -Ls https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -o /mnt/root/archlinux.sh
+    chmod +x /mnt/root/archlinux.sh
+    arch-chroot /mnt /root/archlinux.sh
+    umount -R /mnt
+    reboot
+
 }
 
 main "$@"
