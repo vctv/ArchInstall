@@ -143,6 +143,7 @@ distribute() {
 # select the hard drive
 target_disk(){
     TARGET_DISK=$(lsblk -dno name,size,type | grep disk | sort -k2 -hr | head -n1 | awk '{print "/dev/"$1}')
+    echo "TARGET_DISK - $TARGET_DISK"
 #    while read -r disk; do
 #        if fdisk -l "/dev/${disk}" | grep -i "EFI" >/dev/null 2>&1; then
 #            TARGET_DISK="/dev/${disk}"
@@ -153,12 +154,16 @@ target_disk(){
 #    else
 #        TARGET_DISK_NAME="$TARGET_DISK"
 #    fi
+    TARGET_DISK="/dev/nvme0n1"
     wipefs -a $TARGET_DISK
     TARGET_DISK_SIZE=$(lsblk -b -d -n -o SIZE $TARGET_DISK | awk '{printf "%.0f\n", $1/1024/1024/1024}')
+    echo "TARGET_DISK_SIZE - $TARGET_DISK_SIZE"
 }
 
 create_partitions() {
     CURRENT_POS=$BOOT_SIZE
+    echo "CURRENT_POS - $CURRENT_POS"
+
 
     if [ "$BOOT_MODE" = "UEFI" ]; then
         parted -s "$TARGET_DISK" mklabel gpt
@@ -172,8 +177,10 @@ create_partitions() {
 
     parted -s "$TARGET_DISK" mkpart primary linux-swap "${CURRENT_POS}GiB" "$((CURRENT_POS + SWAP_SIZE))GiB"
     CURRENT_POS=$((CURRENT_POS + SWAP_SIZE))
+    echo "CURRENT_POS - $CURRENT_POS"
     parted -s "$TARGET_DISK" mkpart primary $FS_TYPE "${CURRENT_POS}GiB" "$((CURRENT_POS + ROOT_SIZE))GiB"
     CURRENT_POS=$((CURRENT_POS + ROOT_SIZE))
+    echo "CURRENT_POS - $CURRENT_POS"
     parted -s "$TARGET_DISK" mkpart primary $FS_TYPE "${CURRENT_POS}GiB" 100%
 
     # force formatting of partitions
@@ -189,6 +196,8 @@ create_partitions() {
     mkdir -p /mnt/home
     mount "${disk}4" /mnt/home
     swapon "${disk}2"
+
+    lsblk
 }
 
 main() {
@@ -207,9 +216,9 @@ main() {
     distribute
     create_partitions
 
-    wget https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -O- | tee /mnt/root/archlinux.sh | (chmod +x /mnt/root/archlinux.sh && arch-chroot /mnt /root/archlinux.sh $TARGET_DISK $USERNAME $PASSWORD KDE)
-
-    umount -R /mnt
+#    wget https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -O- | tee /mnt/root/archlinux.sh | (chmod +x /mnt/root/archlinux.sh && arch-chroot /mnt /root/archlinux.sh $TARGET_DISK $USERNAME $PASSWORD KDE)
+#
+#    umount -R /mnt
 }
 
 main "$@"
