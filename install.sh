@@ -135,7 +135,10 @@ distribute() {
             echo "/home     $HOME_SIZE GiB"
             echo "/boot     $BOOT_SIZE GiB"
             echo "swap      $SWAP_SIZE GiB"
+            break
         fi
+        echo "unable to install"
+        exit 1
     done
 }
 
