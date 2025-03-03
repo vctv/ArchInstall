@@ -44,9 +44,35 @@ update_mirrors() {
             systemctl stop reflector.service
             mirror_content="Server = https://mirrors.ustc.edu.cn/archlinux/\$repo/os/\$arch\nServer = https://mirrors.tuna.tsinghua.edu.cn/archlinux/\$repo/os/\$arch\nServer = https://repo.huaweicloud.com/archlinux/\$repo/os/\$arch\nServer = http://mirror.lzu.edu.cn/archlinux/\$repo/os/\$arch\nServer = http://mirrors.aliyun.com/archlinux/\$repo/os/\$arch"
             cp -a /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
-            sed -i "1i $mirror_content" /etc/pacman.d/mirrorlist
+            sed -i "1i $mirror_content\n" /etc/pacman.d/mirrorlist
         fi
     fi
+}
+
+# select the hard drive
+target_disk(){
+#    TARGET_DISK=$(lsblk -dno name,size,type | grep disk | sort -k2 -hr | head -n1 | awk '{print "/dev/"$1}')
+    if [ -n "$TARGET_DISK" ]; then
+      echo "TARGET_DISK - $TARGET_DISK"
+    else
+      echo "NO TARGET_DISK"
+      exit 1
+    fi
+
+#    while read -r disk; do
+#        if fdisk -l "/dev/${disk}" | grep -i "EFI" >/dev/null 2>&1; then
+#            TARGET_DISK="/dev/${disk}"
+#        fi
+#    done < <(lsblk -d -n -o NAME | grep -E "^sd|^nvme|^vd")
+
+    if [[ "$TARGET_DISK" =~ "nvme" ]]; then
+        TARGET_DISK_NAME="${TARGET_DISK}p"
+    else
+        TARGET_DISK_NAME="$TARGET_DISK"
+    fi
+    wipefs -a $TARGET_DISK
+    TARGET_DISK_SIZE=$(lsblk -b -d -n -o SIZE $TARGET_DISK | awk '{printf "%.0f\n", $1/1024/1024/1024}')
+    echo "TARGET_DISK_SIZE - $TARGET_DISK_SIZE"
 }
 
 distribute() {
@@ -90,36 +116,9 @@ distribute() {
     done
 }
 
-# select the hard drive
-target_disk(){
-#    TARGET_DISK=$(lsblk -dno name,size,type | grep disk | sort -k2 -hr | head -n1 | awk '{print "/dev/"$1}')
-    if [ -n "$TARGET_DISK" ]; then
-      echo "TARGET_DISK - $TARGET_DISK"
-    else
-      echo "NO TARGET_DISK"
-      exit 1
-    fi
-
-#    while read -r disk; do
-#        if fdisk -l "/dev/${disk}" | grep -i "EFI" >/dev/null 2>&1; then
-#            TARGET_DISK="/dev/${disk}"
-#        fi
-#    done < <(lsblk -d -n -o NAME | grep -E "^sd|^nvme|^vd")
-    if [[ "$TARGET_DISK" =~ "nvme" ]]; then
-        TARGET_DISK_NAME="${TARGET_DISK}p"
-    else
-        TARGET_DISK_NAME="$TARGET_DISK"
-    fi
-#    TARGET_DISK="/dev/nvme0n1"
-    wipefs -a $TARGET_DISK
-    TARGET_DISK_SIZE=$(lsblk -b -d -n -o SIZE $TARGET_DISK | awk '{printf "%.0f\n", $1/1024/1024/1024}')
-    echo "TARGET_DISK_SIZE - $TARGET_DISK_SIZE"
-}
-
 create_partitions() {
     CURRENT_POS=$BOOT_SIZE
     echo "CURRENT_POS - $CURRENT_POS"
-
 
     if [ "$BOOT_MODE" = "UEFI" ]; then
         parted -s "$TARGET_DISK" mklabel gpt
@@ -157,6 +156,18 @@ create_partitions() {
     lsblk
 }
 
+arch_install(){
+  pacstrap /mnt base base-devel linux linux-firmware networkmanager vim sudo zsh zsh-completions --force
+  genfstab -U /mnt > /mnt/etc/fstab
+}
+
+arch_config(){
+  rm -rf /mnt/root/config.sh
+  wget https://raw.githubusercontent.com/YangMame/Arch-Linux-Installer/master/config.sh -O /mnt/root/config.sh
+  chmod +x /mnt/root/config.sh
+  arch-chroot /mnt /root/config.sh
+}
+
 main() {
     FS_TYPE="ext4" # "btrfs"
     BOOT_SIZE=1
@@ -166,20 +177,8 @@ main() {
     target_disk
     distribute
     create_partitions
-
-    pacman -S archlinux-keyring
-
-    if [ "$BOOT_MODE" = "UEFI" ]; then
-        genfstab -U /mnt >> /mnt/etc/fstab
-    else
-        genfstab -p /mnt >> /mnt/etc/fstab
-    fi
-
-    pacstrap /mnt base base-devel linux linux-firmware vim dhcpcd iwd sudo
-
-#    curl -Ls https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -o /mnt/root/archlinux.sh
-#    chmod +x /mnt/root/archlinux.sh
-#    arch-chroot /mnt /root/archlinux.sh
+    arch_install
+    arch_config
 }
 
 main "$@"
