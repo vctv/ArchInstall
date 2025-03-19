@@ -44,6 +44,8 @@ else
     grub-install --target=i386-pc $BOOT_DISK
 fi
 
+pacman -S --noconfirm plymouth
+
 sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=".*quiet.*"/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash loglevel=3 rd.udev.log_priority=3 vt.global_cursor_default=0 nowatchdog"/' /etc/default/grub
 echo "GRUB_DISABLE_OS_PROBER=false" >> /etc/default/grub
 grub-mkconfig -o /boot/grub/grub.cfg
