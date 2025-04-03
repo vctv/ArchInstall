@@ -163,7 +163,7 @@ arch_install(){
 
 arch_config(){
   rm -rf /mnt/root/config.sh
-  wget https://raw.githubusercontent.com/YangMame/Arch-Linux-Installer/master/config.sh -O /mnt/root/config.sh
+  wget https://raw.githubusercontent.com/vctv/ArchInstall/refs/heads/master/archlinux.sh -O /mnt/root/config.sh
   chmod +x /mnt/root/config.sh
   arch-chroot /mnt /root/config.sh
 }
